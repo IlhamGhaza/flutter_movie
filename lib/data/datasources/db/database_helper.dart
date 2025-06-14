@@ -15,7 +15,10 @@ class DatabaseHelper {
   static Database? _database;
 
   Future<Database?> get database async {
-    _database ??= await _initDb();
+    // If _database is null or not open, initialize it.
+    if (_database == null || !_database!.isOpen) {
+      _database = await _initDb();
+    }
     return _database;
   }
 
@@ -26,9 +29,9 @@ class DatabaseHelper {
     try {
       final path = await getDatabasesPath();
       final databasePath = '$path/ditonton.db';
-      
+
       print('Initializing database at: $databasePath');
-      
+
       var db = await openDatabase(
         databasePath,
         version: 2, // Incremented version to trigger onUpgrade
@@ -38,20 +41,20 @@ class DatabaseHelper {
         },
         onUpgrade: _onUpgrade,
       );
-      
+
       // Verify tables exist
       final tables = await db.rawQuery(
           "SELECT name FROM sqlite_master WHERE type='table'");
       print('Database tables: $tables');
-      
+
       // Check if our tables exist
       final tableNames = tables.map((t) => t['name'] as String).toList();
-      if (!tableNames.contains(_tblMovieWatchlist) || 
+      if (!tableNames.contains(_tblMovieWatchlist) ||
           !tableNames.contains(_tblTvSeriesWatchlist)) {
         print('Required tables missing, recreating database...');
         await db.close();
         await deleteDatabase(databasePath);
-        return _initDb();
+        return _initDb(); // Recurse to re-initialize after deletion
       }
       
       return db;
@@ -63,7 +66,7 @@ class DatabaseHelper {
 
   Future<void> _onCreate(Database db, int version) async {
     print('Creating database tables...');
-    
+
     await db.execute('''
       CREATE TABLE IF NOT EXISTS $_tblMovieWatchlist (
         id INTEGER PRIMARY KEY,
@@ -94,7 +97,7 @@ class DatabaseHelper {
         numberOfSeasons INTEGER
       )
     ''');
-    
+
     print('Database tables created successfully');
   }
 
@@ -222,6 +225,9 @@ class DatabaseHelper {
         // First, check if the table exists and its current structure
         final columns = await db.rawQuery('PRAGMA table_info($_tblTvSeriesWatchlist)');
         final columnNames = columns.map((col) => col['name'] as String).toList();
+
+        // Check if we have any data to migrate
+        final existingData = await db.query(_tblTvSeriesWatchlist);
         
         // Create new table with updated schema
         await db.execute('''
@@ -243,72 +249,71 @@ class DatabaseHelper {
             numberOfSeasons INTEGER
           )
         ''');
-        
-        // Copy existing data to new table with proper handling for missing columns
-        String selectColumns = 'id, title, ';
-        String insertColumns = 'id, title, ';
-        
-        // Add name column if it exists, otherwise use title as name
-        if (columnNames.contains('name')) {
-          selectColumns += 'name, ';
-          insertColumns += 'name, ';
-        } else {
-          selectColumns += 'title as name, ';
-          insertColumns += 'name, ';
-        }
-        
-        // Add other columns that might exist
-        final otherColumns = ['overview', 'posterPath', 'voteAverage', 'firstAirDate'];
-        for (var col in otherColumns) {
-          if (columnNames.contains(col)) {
-            selectColumns += '$col, ';
-            insertColumns += '$col, ';
+
+        // If we have existing data, migrate it
+        if (existingData.isNotEmpty) {
+          // Copy existing data to new table with proper handling for missing columns
+          String selectColumns = 'id, title, ';
+          String insertColumns = 'id, title, ';
+
+          // Add name column if it exists, otherwise use title as name
+          if (columnNames.contains('name')) {
+            selectColumns += 'name, ';
+            insertColumns += 'name, ';
           } else {
-            // Provide default values for missing columns
-            final defaultValue = col == 'overview' ? "''" : 
-                               col == 'voteAverage' ? '0.0' : "''";
-            selectColumns += '$defaultValue as $col, ';
-            insertColumns += '$col, ';
+            selectColumns += 'title as name, ';
+            insertColumns += 'name, ';
           }
+
+          // Add other columns that might exist
+          final otherColumns = ['overview', 'posterPath', 'voteAverage', 'firstAirDate'];
+          for (var col in otherColumns) {
+            if (columnNames.contains(col)) {
+              selectColumns += '$col, ';
+              insertColumns += '$col, ';
+            } else {
+              // Provide default values for missing columns
+              final defaultValue = col == 'overview' ? "''" :
+                                 col == 'voteAverage' ? '0.0' : "''";
+              selectColumns += '$defaultValue as $col, ';
+              insertColumns += '$col, ';
+            }
+          }
+
+          // Add new columns with default values
+          final newColumns = {
+            'backdropPath': "''",
+            'genreIds': "'[]'",
+            'originalName': 'name',
+            'originalLanguage': "'en'",
+            'popularity': '0.0',
+            'voteCount': '0',
+            'numberOfEpisodes': '0',
+            'numberOfSeasons': '0'
+          };
+
+          // Remove trailing comma and space
+          selectColumns = selectColumns.substring(0, selectColumns.length - 2);
+          insertColumns = insertColumns.substring(0, insertColumns.length - 2);
+
+          // Add new columns to insert
+          newColumns.forEach((col, valueToSelect) {
+            insertColumns += ', $col';
+            selectColumns += ', $valueToSelect as $col';
+          });
+
+          // Perform the data migration
+          await db.execute('''
+            INSERT INTO ${_tblTvSeriesWatchlist}_new ($insertColumns)
+            SELECT $selectColumns
+            FROM $_tblTvSeriesWatchlist
+          ''');
         }
-        
-        // Add new columns with default values
-        final newColumns = {
-          'backdropPath': "''",
-          'genreIds': "'[]'",
-          'originalName': 'name',
-          'originalLanguage': "'en'",
-          'popularity': '0.0',
-          'voteCount': '0',
-          'numberOfEpisodes': '0',
-          'numberOfSeasons': '0'
-        };
-        
-        // Remove trailing comma and space
-        selectColumns = selectColumns.substring(0, selectColumns.length - 2);
-        insertColumns = insertColumns.substring(0, insertColumns.length - 2);
-        
-        // Add new columns to insert
-        newColumns.forEach((col, defaultValue) {
-          insertColumns += ', $col';
-          if (col == 'originalName' && !columnNames.contains('name')) {
-            selectColumns += ', title as $col';  // Use title as originalName if name doesn't exist
-          } else {
-            selectColumns += ', $defaultValue as $col';
-          }
-        });
-        
-        // Perform the data migration
-        await db.execute('''
-          INSERT INTO ${_tblTvSeriesWatchlist}_new ($insertColumns)
-          SELECT $selectColumns
-          FROM $_tblTvSeriesWatchlist
-        ''');
-        
+
         // Drop old table and rename new one
-        await db.execute('DROP TABLE $_tblTvSeriesWatchlist');
+        await db.execute('DROP TABLE IF EXISTS $_tblTvSeriesWatchlist');
         await db.execute('ALTER TABLE ${_tblTvSeriesWatchlist}_new RENAME TO $_tblTvSeriesWatchlist');
-        
+
         print('Successfully upgraded database from version $oldVersion to $newVersion');
       } catch (e) {
         print('Error during database upgrade: $e');
@@ -319,7 +324,7 @@ class DatabaseHelper {
       }
     }
   }
-  
+
   // Helper method to create the TV series table
   Future<void> _createTvSeriesTable(Database db) async {
     await db.execute('''
@@ -341,5 +346,13 @@ class DatabaseHelper {
         numberOfSeasons INTEGER
       )
     ''');
+  }
+
+  // Method to close and nullify the database, useful for testing.
+  Future<void> closeDatabase() async {
+    if (_database != null && _database!.isOpen) {
+      await _database!.close();
+    }
+    _database = null;
   }
 }

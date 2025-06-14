@@ -1,10 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-
 import 'package:ditonton/domain/entities/tv_series.dart';
 import 'package:ditonton/domain/usecases/get_watchlist_tv_series.dart';
-import '../../mocks/mock_tv_series_repository.dart';
+import '../../helpers/test_helper.mocks.dart';
 
 void main() {
   late GetWatchlistTvSeries usecase;
@@ -35,11 +34,14 @@ void main() {
 
   test('should get list of watchlist tv series from the repository', () async {
     // arrange
+    final expectedTvSeries = <TvSeries>[tTvSeries];
     when(mockTvSeriesRepository.getWatchlistTvSeries())
-        .thenAnswer((_) async => Right(<TvSeries>[tTvSeries]));
+        .thenAnswer((_) async => Right(expectedTvSeries));
     // act
     final result = await usecase.execute();
     // assert
-    expect(result, Right(<TvSeries>[tTvSeries]));
+    verify(mockTvSeriesRepository.getWatchlistTvSeries());
+    final resultList = result.getOrElse(() => []);
+    expect(resultList, equals(expectedTvSeries));
   });
 }

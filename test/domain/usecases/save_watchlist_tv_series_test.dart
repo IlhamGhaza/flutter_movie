@@ -1,10 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-
 import 'package:ditonton/domain/entities/tv_series.dart';
 import 'package:ditonton/domain/usecases/save_watchlist_tv_series.dart';
-import '../../mocks/mock_tv_series_repository.dart';
+import '../../helpers/test_helper.mocks.dart';
 
 void main() {
   late SaveWatchlistTvSeries usecase;
@@ -40,6 +39,8 @@ void main() {
     // act
     final result = await usecase.execute(tTvSeries);
     // assert
-    expect(result, const Right('Added to Watchlist'));
+    verify(mockTvSeriesRepository.saveWatchlist(tTvSeries));
+    final resultMessage = result.getOrElse(() => '');
+    expect(resultMessage, 'Added to Watchlist');
   });
 }

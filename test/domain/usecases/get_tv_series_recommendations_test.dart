@@ -1,10 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-
 import 'package:ditonton/domain/entities/tv_series.dart';
 import 'package:ditonton/domain/usecases/get_tv_series_recommendations.dart';
-import '../../mocks/mock_tv_series_repository.dart';
+import '../../helpers/test_helper.mocks.dart';
 
 void main() {
   late GetTvSeriesRecommendations usecase;
@@ -35,11 +34,15 @@ void main() {
 
   test('should get list of tv series recommendations from the repository', () async {
     // arrange
-    when(mockTvSeriesRepository.getTvSeriesRecommendations(1))
-        .thenAnswer((_) async => Right(<TvSeries>[tTvSeries]));
+    final tId = 1;
+    final expectedTvSeries = <TvSeries>[tTvSeries];
+    when(mockTvSeriesRepository.getTvSeriesRecommendations(tId))
+        .thenAnswer((_) async => Right(expectedTvSeries));
     // act
-    final result = await usecase.execute(1);
+    final result = await usecase.execute(tId);
     // assert
-    expect(result, Right(<TvSeries>[tTvSeries]));
+    verify(mockTvSeriesRepository.getTvSeriesRecommendations(tId));
+    final resultList = result.getOrElse(() => []);
+    expect(resultList, equals(expectedTvSeries));
   });
 }
