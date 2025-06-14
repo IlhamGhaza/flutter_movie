@@ -5,6 +5,7 @@ import 'package:ditonton/data/datasources/tv_series_local_data_source.dart';
 import 'package:ditonton/data/datasources/tv_series_remote_data_source.dart';
 import 'package:ditonton/domain/repositories/tv_series_repository.dart';
 import 'package:ditonton/domain/entities/tv_series.dart';
+import 'package:ditonton/domain/entities/tv_series_detail.dart';
 import 'package:ditonton/data/models/tv_series_table.dart';
 
 class TVSeriesRepositoryImpl implements TvSeriesRepository {
@@ -47,7 +48,7 @@ class TVSeriesRepositoryImpl implements TvSeriesRepository {
   }
 
   @override
-  Future<Either<Failure, TvSeries>> getTvSeriesDetail(int id) async {
+  Future<Either<Failure, TvSeriesDetail>> getTvSeriesDetail(int id) async {
     try {
       final result = await remoteDataSource.getTvSeriesDetail(id);
       return Right(result.toEntity());

@@ -22,6 +22,8 @@ class Movie extends Equatable {
     required this.overview,
     required this.posterPath,
     required this.title,
+    this.voteAverage,
+    this.releaseDate,
   });
 
   bool? adult;

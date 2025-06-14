@@ -28,77 +28,86 @@ class _WatchlistTvSeriesPageState extends State<WatchlistTvSeriesPage>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<WatchlistTvSeriesNotifier>(
-      builder: (context, data, child) {
-        if (data.state == RequestState.Loading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        } else if (data.state == RequestState.Error) {
-          return Center(
-            child: Text(data.message),
-          );
-        } else {
-          return ListView.builder(
-            itemBuilder: (context, index) {
-              final tvSeries = data.watchlistTvSeries[index];
-              return Consumer<WatchlistTvSeriesNotifier>(
-                builder: (context, data, child) {
-                  return FutureBuilder<bool>(
-                    future: data.isAddedToWatchlist(tvSeries.id),
-                    builder: (context, snapshot) {
-                      var isAdded = snapshot.data ?? false;
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        leading: SizedBox(
-                          width: 54,
-                          height: 54,
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(8),
-                            ),
-                            child: CachedNetworkImage(
-                              imageUrl:
-                                  'https://image.tmdb.org/t/p/w500${tvSeries.posterPath}',
-                              placeholder: (context, url) => const Center(
-                                child: CircularProgressIndicator(),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('TV Series Watchlist'),
+      ),
+      body: Consumer<WatchlistTvSeriesNotifier>(
+        builder: (context, data, child) {
+          if (data.state == RequestState.Loading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (data.state == RequestState.Error) {
+            return Center(
+              child: Text(data.message),
+            );
+          } else if (data.watchlistTvSeries.isEmpty) {
+            return Center(
+              child: Text('No TV series in your watchlist yet!'),
+            );
+          } else {
+            return ListView.builder(
+              itemBuilder: (context, index) {
+                final tvSeries = data.watchlistTvSeries[index];
+                return Consumer<WatchlistTvSeriesNotifier>(
+                  builder: (context, data, child) {
+                    return FutureBuilder<bool>(
+                      future: data.isAddedToWatchlist(tvSeries.id),
+                      builder: (context, snapshot) {
+                        var isAdded = snapshot.data ?? false;
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          leading: SizedBox(
+                            width: 54,
+                            height: 54,
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(8),
                               ),
-                              errorWidget: (context, url, error) =>
-                                  const Icon(Icons.error),
+                              child: CachedNetworkImage(
+                                imageUrl:
+                                    'https://image.tmdb.org/t/p/w500${tvSeries.posterPath}',
+                                placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
+                              ),
                             ),
                           ),
-                        ),
-                        title: Text(
-                          tvSeries.name,
-                          maxLines: 2,
-                        ),
-                        subtitle: Text(tvSeries.firstAirDate),
-                        trailing: IconButton(
-                          icon: Icon(
-                            isAdded ? Icons.check : Icons.add,
-                            color: kMikadoYellow,
+                          title: Text(
+                            tvSeries.name,
+                            maxLines: 2,
                           ),
-                          onPressed: () async {
-                            if (!isAdded) {
-                              await data.addTvSeriesToWatchlist(tvSeries);
-                            } else {
-                              await data.removeTvSeriesFromWatchlist(tvSeries);
-                            }
-                          },
-                        ),
-                      );
-                    },
-                  );
-                },
-              );
-            },
-            itemCount: data.watchlistTvSeries.length,
-          );
-        }
-      },
+                          subtitle: Text(tvSeries.firstAirDate),
+                          trailing: IconButton(
+                            icon: Icon(
+                              isAdded ? Icons.check : Icons.add,
+                              color: kMikadoYellow,
+                            ),
+                            onPressed: () async {
+                              if (!isAdded) {
+                                await data.addTvSeriesToWatchlist(tvSeries);
+                              } else {
+                                await data.removeTvSeriesFromWatchlist(tvSeries);
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+              itemCount: data.watchlistTvSeries.length,
+            );
+          }
+        },
+      ),
     );
   }
 }

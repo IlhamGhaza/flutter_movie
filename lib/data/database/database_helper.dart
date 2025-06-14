@@ -1,4 +1,5 @@
-import 'package:sqflite/sqflite.dart';
+import 'dart:io' show Platform;
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import '../models/tv_series_table.dart';
 
@@ -13,6 +14,12 @@ class DatabaseHelper {
   factory DatabaseHelper() => _databaseHelper ?? DatabaseHelper._internal();
 
   Future<Database> _initializeDb() async {
+    // Initialize FFI for non-web platforms
+    if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
     var path = join(await getDatabasesPath(), 'ditonton_tv_series.db');
     var db = await openDatabase(
       path,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../common/constants.dart';
 import '../../../domain/entities/tv_series.dart';
+import '../pages/tv_series_detail_page.dart';
 
 class TvSeriesCard extends StatelessWidget {
   final TvSeries tvSeries;
@@ -16,7 +17,7 @@ class TvSeriesCard extends StatelessWidget {
         onTap: () {
           Navigator.pushNamed(
             context,
-            '/detail',
+            TvSeriesDetailPage.ROUTE_NAME,
             arguments: tvSeries.id,
           );
         },

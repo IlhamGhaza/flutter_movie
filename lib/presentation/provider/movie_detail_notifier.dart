@@ -45,35 +45,55 @@ class MovieDetailNotifier extends ChangeNotifier {
   bool _isAddedtoWatchlist = false;
   bool get isAddedToWatchlist => _isAddedtoWatchlist;
 
-  Future<void> fetchMovieDetail(int id) async {
-    _movieState = RequestState.Loading;
+  Future<void> _fetchMovieRecommendations(int id) async {
+    _recommendationState = RequestState.Loading;
     notifyListeners();
-    final detailResult = await getMovieDetail.execute(id);
-    final recommendationResult = await getMovieRecommendations.execute(id);
-    detailResult.fold(
+    
+    final result = await getMovieRecommendations.execute(id);
+    result.fold(
       (failure) {
-        _movieState = RequestState.Error;
+        _recommendationState = RequestState.Error;
         _message = failure.message;
-        notifyListeners();
       },
-      (movie) {
-        _recommendationState = RequestState.Loading;
-        _movie = movie;
-        notifyListeners();
-        recommendationResult.fold(
-          (failure) {
-            _recommendationState = RequestState.Error;
-            _message = failure.message;
-          },
-          (movies) {
-            _recommendationState = RequestState.Loaded;
-            _movieRecommendations = movies;
-          },
-        );
-        _movieState = RequestState.Loaded;
-        notifyListeners();
+      (movies) {
+        _recommendationState = RequestState.Loaded;
+        _movieRecommendations = movies;
       },
     );
+    notifyListeners();
+  }
+
+  Future<void> fetchMovieDetail(int id) async {
+    try {
+      _movieState = RequestState.Loading;
+      notifyListeners();
+      
+      // Fetch movie detail
+      final result = await getMovieDetail.execute(id);
+      result.fold(
+        (failure) {
+          _movieState = RequestState.Error;
+          _message = failure.message;
+          notifyListeners();
+        },
+        (movie) async {
+          _movie = movie;
+          _movieState = RequestState.Loaded;
+          
+          // Load watchlist status
+          await loadWatchlistStatus(movie.id);
+          
+          // Fetch recommendations
+          await _fetchMovieRecommendations(movie.id);
+          
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      _movieState = RequestState.Error;
+      _message = 'Failed to load movie details';
+      notifyListeners();
+    }
   }
 
   String _watchlistMessage = '';
@@ -110,8 +130,13 @@ class MovieDetailNotifier extends ChangeNotifier {
   }
 
   Future<void> loadWatchlistStatus(int id) async {
-    final result = await getWatchListStatus.execute(id);
-    _isAddedtoWatchlist = result;
-    notifyListeners();
+    try {
+      final result = await getWatchListStatus.execute(id);
+      _isAddedtoWatchlist = result;
+      notifyListeners();
+    } catch (e) {
+      _message = 'Failed to load watchlist status';
+      notifyListeners();
+    }
   }
 }
