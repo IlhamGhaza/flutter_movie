@@ -495,6 +495,16 @@ class MockDatabaseHelper extends _i1.Mock implements _i15.DatabaseHelper {
         returnValue: _i6.Future<List<Map<String, dynamic>>>.value(
             <Map<String, dynamic>>[]),
       ) as _i6.Future<List<Map<String, dynamic>>>);
+
+  @override
+  _i6.Future<void> closeDatabase() => (super.noSuchMethod(
+        Invocation.method(
+          #closeDatabase,
+          [],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
 }
 
 /// A class which mocks [Client].
