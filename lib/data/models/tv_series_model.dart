@@ -37,20 +37,20 @@ class TvSeriesModel {
 
   factory TvSeriesModel.fromJson(Map<String, dynamic> json) => TvSeriesModel(
     id: json['id'] ?? 0,
-    title: json['name'] ?? '',
-    overview: json['overview'] ?? '',
+    title: json['name'] ?? json['original_name'] ?? 'No Title',
+    overview: json['overview'] ?? 'No overview available',
     posterPath: json['poster_path'] ?? '',
-    voteAverage: (json['vote_average'] ?? 0).toDouble(),
-    genreIds: List<int>.from(json['genre_ids'] ?? []),
-    firstAirDate: json['first_air_date'] ?? '',
-    popularity: (json['popularity'] ?? 0).toDouble(),
+    voteAverage: (json['vote_average'] ?? 0.0).toDouble(),
+    genreIds: (json['genre_ids'] as List<dynamic>?)?.map((e) => e as int).toList() ?? <int>[],
+    firstAirDate: json['first_air_date']?.toString() ?? '',
+    popularity: (json['popularity'] ?? 0.0).toDouble(),
     voteCount: json['vote_count'] ?? 0,
     backdropPath: json['backdrop_path'] ?? '',
-    originalLanguage: json['original_language'] ?? '',
+    originalLanguage: json['original_language'] ?? 'en',
     originalName: json['original_name'] ?? '',
-    name: json['name'] ?? '',
-    numberOfEpisodes: json['number_of_episodes'] ?? 0,
-    numberOfSeasons: json['number_of_seasons'] ?? 0,
+    name: json['name'] ?? json['original_name'] ?? 'No Title',
+    numberOfEpisodes: json['number_of_episodes']?.toInt() ?? 0,
+    numberOfSeasons: json['number_of_seasons']?.toInt() ?? 0,
   );
 
   Map<String, dynamic> toJson() => {

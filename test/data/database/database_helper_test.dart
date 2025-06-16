@@ -112,10 +112,27 @@ void main() {
   group('TV Series Watchlist', () {
     test('should insert and retrieve TV series from watchlist', () async {
       await databaseHelper.insertTvSeriesWatchlist(testTvSeriesTable);
-      final tvSeriesFromDb =
+      final tvSeriesMapFromDb =
           await databaseHelper.getTvSeriesById(testTvSeriesTable.id);
-      expect(tvSeriesFromDb, isNotNull);
-      expect(TvSeriesTable.fromMap(tvSeriesFromDb!), testTvSeriesTable);
+      expect(tvSeriesMapFromDb, isNotNull);
+      final tvSeriesFromDb = TvSeriesTable.fromMap(tvSeriesMapFromDb!);
+
+      // Compare individual properties as TvSeriesTable does not override ==
+      expect(tvSeriesFromDb.id, testTvSeriesTable.id);
+      expect(tvSeriesFromDb.title, testTvSeriesTable.title);
+      expect(tvSeriesFromDb.name, testTvSeriesTable.name);
+      expect(tvSeriesFromDb.overview, testTvSeriesTable.overview);
+      expect(tvSeriesFromDb.posterPath, testTvSeriesTable.posterPath);
+      expect(tvSeriesFromDb.backdropPath, testTvSeriesTable.backdropPath);
+      expect(tvSeriesFromDb.voteAverage, testTvSeriesTable.voteAverage);
+      expect(tvSeriesFromDb.firstAirDate, testTvSeriesTable.firstAirDate);
+      expect(tvSeriesFromDb.genreIds, testTvSeriesTable.genreIds);
+      expect(tvSeriesFromDb.originalName, testTvSeriesTable.originalName);
+      expect(tvSeriesFromDb.originalLanguage, testTvSeriesTable.originalLanguage);
+      expect(tvSeriesFromDb.popularity, testTvSeriesTable.popularity);
+      expect(tvSeriesFromDb.voteCount, testTvSeriesTable.voteCount);
+      expect(tvSeriesFromDb.numberOfEpisodes, testTvSeriesTable.numberOfEpisodes);
+      expect(tvSeriesFromDb.numberOfSeasons, testTvSeriesTable.numberOfSeasons);
     });
 
     test('should remove TV series from watchlist', () async {
