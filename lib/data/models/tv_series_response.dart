@@ -14,12 +14,16 @@ class TvSeriesResponse {
   });
 
   factory TvSeriesResponse.fromJson(Map<String, dynamic> json) => TvSeriesResponse(
-    tvSeriesList: List<TvSeriesModel>.from(
-      json['results'].map((x) => TvSeriesModel.fromJson(x)),
-    ),
-    page: json['page'],
-    totalPages: json['total_pages'],
-    totalResults: json['total_results'],
+    tvSeriesList: json['results'] == null 
+        ? <TvSeriesModel>[] 
+        : List<TvSeriesModel>.from(
+            (json['results'] as List)
+                .map((x) => TvSeriesModel.fromJson(x))
+                .where((tvSeries) => tvSeries.id != 0),
+          ),
+    page: json['page'] ?? 1,
+    totalPages: json['total_pages'] ?? 1,
+    totalResults: json['total_results'] ?? 0,
   );
 
   Map<String, dynamic> toJson() => {
