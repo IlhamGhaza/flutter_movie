@@ -92,7 +92,9 @@ class TvSeriesDetailModel extends Equatable {
   factory TvSeriesDetailModel.fromJson(Map<String, dynamic> json) => TvSeriesDetailModel(
         adult: json["adult"] ?? false,
         backdropPath: json["backdrop_path"],
-        episodeRunTime: List<int>.from((json["episode_run_time"] as List<dynamic>?)?.map((x) => x as int) ?? []),
+        episodeRunTime: json["episode_run_time"] is List 
+            ? (json["episode_run_time"] as List).map((x) => x is int ? x : 0).toList()
+            : <int>[],
         firstAirDate: json["first_air_date"] ?? '',
         genres: List<GenreModel>.from(
             (json["genres"] as List<dynamic>?)?.map((x) => GenreModel.fromJson(x)) ?? []),
