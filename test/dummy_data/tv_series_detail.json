@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "name": "Test TV Show",
+  "overview": "Test overview",
+  "poster_path": "/test.jpg",
+  "vote_average": 8.5,
+  "first_air_date": "2023-01-01",
+  "genres": [{"id": 1, "name": "Drama"}],
+  "number_of_seasons": 3,
+  "number_of_episodes": 24,
+  "vote_count": 1000
+}

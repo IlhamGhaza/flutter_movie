@@ -31,7 +31,7 @@ void main() {
     voteCount: 1,
   );
 
-  Widget _makeTestableWidget(Widget body) {
+  Widget makeTestableWidget(Widget body) {
     return MaterialApp(
       home: Scaffold(
         body: body,
@@ -41,7 +41,7 @@ void main() {
 
   testWidgets('should show movie card with all elements', (WidgetTester tester) async {
     // Arrange
-    final widget = _makeTestableWidget(MovieCard(testMovie));
+    final widget = makeTestableWidget(MovieCard(testMovie));
     
     // Act
     await tester.pumpWidget(widget);
@@ -90,7 +90,7 @@ void main() {
 
   testWidgets('should show loading indicator when image is loading', (WidgetTester tester) async {
     // Arrange
-    final widget = _makeTestableWidget(MovieCard(testMovie));
+    final widget = makeTestableWidget(MovieCard(testMovie));
     
     // Act
     await tester.pumpWidget(widget);
@@ -101,7 +101,7 @@ void main() {
 
   testWidgets('should show error icon when image fails to load', (WidgetTester tester) async {
     // Arrange
-    final widget = _makeTestableWidget(MovieCard(testMovie));
+    final widget = makeTestableWidget(MovieCard(testMovie));
     
     // Act
     await tester.pumpWidget(widget);

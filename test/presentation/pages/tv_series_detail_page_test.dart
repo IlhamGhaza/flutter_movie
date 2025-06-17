@@ -4,8 +4,6 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:ditonton/common/state_enum.dart';
-import 'package:ditonton/domain/entities/tv_series.dart';
-import 'package:ditonton/domain/entities/tv_series_detail.dart';
 import 'package:ditonton/presentation/pages/tv_series_detail_page.dart';
 import 'package:ditonton/presentation/provider/tv_series_detail_notifier.dart';
 import '../../dummy_data/dummy_objects.dart';
@@ -28,7 +26,7 @@ void main() {
     when(mockNotifier.watchlistMessage).thenReturn('');
   });
 
-  Widget _makeTestableWidget(Widget body) {
+  Widget makeTestableWidget(Widget body) {
     return ChangeNotifierProvider<TvSeriesDetailNotifier>.value(
       value: mockNotifier,
       child: MaterialApp(
@@ -54,7 +52,7 @@ void main() {
     when(mockNotifier.detailState).thenReturn(RequestState.Loading);
     when(mockNotifier.recommendationsState).thenReturn(RequestState.Loading);
 
-    await tester.pumpWidget(_makeTestableWidget(
+    await tester.pumpWidget(makeTestableWidget(
       const TvSeriesDetailPage(id: 1),
     ));
 
@@ -69,7 +67,7 @@ void main() {
     when(mockNotifier.tvSeriesDetail).thenReturn(testTvSeriesDetail);
     when(mockNotifier.isAddedToWatchlist).thenReturn(false);
 
-    await tester.pumpWidget(_makeTestableWidget(
+    await tester.pumpWidget(makeTestableWidget(
       const TvSeriesDetailPage(id: 1),
     ));
     await tester.pump();
@@ -85,7 +83,7 @@ void main() {
     when(mockNotifier.recommendations).thenReturn([testTvSeries]);
     when(mockNotifier.isAddedToWatchlist).thenReturn(true);
 
-    await tester.pumpWidget(_makeTestableWidget(
+    await tester.pumpWidget(makeTestableWidget(
       const TvSeriesDetailPage(id: 1),
     ));
     await tester.pump();
@@ -102,7 +100,7 @@ void main() {
     when(mockNotifier.recommendations).thenReturn([testTvSeries]);
     when(mockNotifier.isAddedToWatchlist).thenReturn(false);
 
-    await tester.pumpWidget(_makeTestableWidget(
+    await tester.pumpWidget(makeTestableWidget(
       const TvSeriesDetailPage(id: 1),
     ));
     await tester.pump();
@@ -119,7 +117,7 @@ void main() {
     when(mockNotifier.recommendationsMessage).thenReturn('Error message');
     when(mockNotifier.isAddedToWatchlist).thenReturn(false);
 
-    await tester.pumpWidget(_makeTestableWidget(
+    await tester.pumpWidget(makeTestableWidget(
       const TvSeriesDetailPage(id: 1),
     ));
     await tester.pump();
@@ -135,7 +133,7 @@ void main() {
     when(mockNotifier.recommendations).thenReturn([]);
     when(mockNotifier.isAddedToWatchlist).thenReturn(false);
 
-    await tester.pumpWidget(_makeTestableWidget(
+    await tester.pumpWidget(makeTestableWidget(
       const TvSeriesDetailPage(id: 1),
     ));
     await tester.pump();

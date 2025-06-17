@@ -172,7 +172,7 @@ void main() {
 
   test('should handle database upgrade', () async {
     // Helper function to delete database file with retries
-    Future<void> _deleteDatabaseFile(String path) async {
+    Future<void> deleteDatabaseFile(String path) async {
       final file = File(path);
       if (await file.exists()) {
         try {
@@ -191,7 +191,7 @@ void main() {
     await databaseHelper.closeDatabase();
     
     // Clean up before creating old version
-    await _deleteDatabaseFile(testDbPath!);
+    await deleteDatabaseFile(testDbPath!);
 
     // Create an old version of the database
     final oldDb = await databaseFactory.openDatabase(
@@ -262,7 +262,7 @@ void main() {
         print('Error closing database helper: $e');
       }
       // Final cleanup
-      await _deleteDatabaseFile(testDbPath!);
+      await deleteDatabaseFile(testDbPath!);
     }
   });
 }
