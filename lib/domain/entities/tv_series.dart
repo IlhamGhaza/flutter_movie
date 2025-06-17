@@ -73,4 +73,13 @@ class TvSeries {
         numberOfEpisodes.hashCode ^
         numberOfSeasons.hashCode;
   }
+
+  @override
+  String toString() {
+    return 'TvSeries{id: $id, title: $title, overview: $overview, posterPath: $posterPath, '
+        'voteAverage: $voteAverage, genreIds: $genreIds, firstAirDate: $firstAirDate, '
+        'popularity: $popularity, voteCount: $voteCount, backdropPath: $backdropPath, '
+        'originalLanguage: $originalLanguage, originalName: $originalName, name: $name, '
+        'numberOfEpisodes: $numberOfEpisodes, numberOfSeasons: $numberOfSeasons}';
+  }
 }

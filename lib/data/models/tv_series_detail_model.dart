@@ -193,10 +193,20 @@ class GenreModel extends Equatable {
     required this.name,
   });
 
-  factory GenreModel.fromJson(Map<String, dynamic> json) => GenreModel(
-        id: json['id'] ?? 0,
-        name: json['name'] ?? '',
-      );
+  factory GenreModel.fromJson(Map<String, dynamic> json) {
+    int parseId(dynamic id) {
+      if (id == null) return 0;
+      if (id is int) return id;
+      if (id is double) return id.toInt();
+      if (id is String) return int.tryParse(id) ?? 0;
+      return 0;
+    }
+    
+    return GenreModel(
+      id: parseId(json['id']),
+      name: json['name']?.toString() ?? '',
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,

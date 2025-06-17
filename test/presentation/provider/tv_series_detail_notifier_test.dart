@@ -15,33 +15,23 @@ import 'package:mockito/mockito.dart';
 
 import 'tv_series_detail_notifier_test.mocks.dart';
 
+// Extension to convert TvSeriesDetail to TvSeries for testing
 extension TvSeriesDetailX on TvSeriesDetail {
   TvSeries toTvSeries() {
-    int safeId;
-    try {
-      if (id is int) {
-        safeId = id as int;
-      } else {
-        safeId = 0;
-      }
-    } catch (e) {
-      safeId = 0;
-    }
-
     return TvSeries(
-      id: safeId,
+      id: this.id,
       title: name,
-      name: name,
       overview: overview,
       posterPath: posterPath ?? '',
       voteAverage: voteAverage,
-      genreIds: genres.map((e) => e.id).toList(),
+      genreIds: genres.map((genre) => genre.id).toList(),
       firstAirDate: firstAirDate,
       popularity: popularity,
       voteCount: voteCount,
       backdropPath: backdropPath ?? '',
       originalLanguage: originalLanguage,
       originalName: originalName,
+      name: name,
       numberOfEpisodes: numberOfEpisodes,
       numberOfSeasons: numberOfSeasons,
     );
@@ -197,8 +187,48 @@ void main() {
   });
 
   group('Watchlist', () {
+    test('should add to watchlist when addWatchlist is called', () async {
+      when(mockSaveWatchlist.execute(any))
+          .thenAnswer((_) async => const Right('Added to Watchlist'));
 
-    test('should update watchlist status when load watchlist status', () async {
+      await provider.addWatchlist(testTvSeriesDetail);
+
+      verify(mockSaveWatchlist.execute(any));
+      expect(provider.watchlistMessage, 'Added to Watchlist');
+      expect(provider.isAddedToWatchlist, true);
+    });
+
+    test('should remove from watchlist when removeFromWatchlist is called', () async {
+      when(mockRemoveWatchlist.execute(any))
+          .thenAnswer((_) async => const Right('Removed from Watchlist'));
+
+      await provider.removeFromWatchlist(testTvSeriesDetail);
+
+      verify(mockRemoveWatchlist.execute(any));
+      expect(provider.watchlistMessage, 'Removed from Watchlist');
+      expect(provider.isAddedToWatchlist, false);
+    });
+
+    test('should handle error when adding to watchlist fails', () async {
+      when(mockSaveWatchlist.execute(any))
+          .thenAnswer((_) async => Left(DatabaseFailure('Failed to add to watchlist')));
+
+      await provider.addWatchlist(testTvSeriesDetail);
+
+      expect(provider.watchlistMessage, 'Failed to add to watchlist');
+      expect(provider.isAddedToWatchlist, false);
+    });
+
+    test('should handle error when removing from watchlist fails', () async {
+      when(mockRemoveWatchlist.execute(any))
+          .thenAnswer((_) async => Left(DatabaseFailure('Failed to remove from watchlist')));
+
+      await provider.removeFromWatchlist(testTvSeriesDetail);
+
+      expect(provider.watchlistMessage, 'Failed to remove from watchlist');
+    });
+
+    test('should update watchlist status when loadWatchlistStatus is called', () async {
       when(mockGetWatchlistStatus.execute(testId))
           .thenAnswer((_) async => true);
 
@@ -207,5 +237,60 @@ void main() {
       verify(mockGetWatchlistStatus.execute(testId));
       expect(provider.isAddedToWatchlist, true);
     });
+
+    test('should handle error when loadWatchlistStatus fails', () async {
+      when(mockGetWatchlistStatus.execute(testId))
+          .thenThrow(Exception('Database error'));
+
+      await provider.loadWatchlistStatus(testId);
+
+      expect(provider.isAddedToWatchlist, false);
+    });
+  });
+
+  group('getTvSeriesRecommendations', () {
+    test('should get recommendations when getTvSeriesRecommendations is called',
+        () async {
+      when(mockGetTvSeriesRecommendations.execute(testId))
+          .thenAnswer((_) async => Right(testRecommendations));
+
+      await provider.getTvSeriesRecommendations(testId);
+
+      verify(mockGetTvSeriesRecommendations.execute(testId));
+      expect(provider.recommendationsState, RequestState.Loaded);
+      expect(provider.recommendations, testRecommendations);
+    });
+
+    test('should update state to error when getTvSeriesRecommendations fails',
+        () async {
+      when(mockGetTvSeriesRecommendations.execute(testId))
+          .thenAnswer((_) async => Left(ServerFailure('Server Error')));
+
+      await provider.getTvSeriesRecommendations(testId);
+
+      expect(provider.recommendationsState, RequestState.Error);
+      expect(provider.recommendationsMessage, 'Server Error');
+      expect(provider.recommendations, []);
+    });
+  });
+
+  test('should convert TvSeriesDetail to TvSeries correctly', () {
+    final tvSeries = testTvSeriesDetail.toTvSeries();
+    
+    expect(tvSeries.id, testTvSeriesDetail.id);
+    expect(tvSeries.title, testTvSeriesDetail.name);
+    expect(tvSeries.name, testTvSeriesDetail.name);
+    expect(tvSeries.overview, testTvSeriesDetail.overview);
+    expect(tvSeries.posterPath, testTvSeriesDetail.posterPath ?? '');
+    expect(tvSeries.voteAverage, testTvSeriesDetail.voteAverage);
+    expect(tvSeries.genreIds, testTvSeriesDetail.genres.map((e) => e.id).toList());
+    expect(tvSeries.firstAirDate, testTvSeriesDetail.firstAirDate);
+    expect(tvSeries.popularity, testTvSeriesDetail.popularity);
+    expect(tvSeries.voteCount, testTvSeriesDetail.voteCount);
+    expect(tvSeries.backdropPath, testTvSeriesDetail.backdropPath ?? '');
+    expect(tvSeries.originalLanguage, testTvSeriesDetail.originalLanguage);
+    expect(tvSeries.originalName, testTvSeriesDetail.originalName);
+    expect(tvSeries.numberOfEpisodes, testTvSeriesDetail.numberOfEpisodes);
+    expect(tvSeries.numberOfSeasons, testTvSeriesDetail.numberOfSeasons);
   });
 }
