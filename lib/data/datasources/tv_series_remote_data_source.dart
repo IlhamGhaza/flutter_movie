@@ -3,6 +3,7 @@ import 'package:ditonton/common/exception.dart';
 import 'package:ditonton/data/models/tv_series_model.dart';
 import 'package:ditonton/data/models/tv_series_response.dart';
 import 'package:ditonton/data/models/tv_series_detail_model.dart';
+import 'package:ditonton/data/models/season_detail_model.dart';
 
 class TVSeriesRemoteDataSource {
   final Dio client;
@@ -63,6 +64,35 @@ class TVSeriesRemoteDataSource {
       return TvSeriesResponse.fromJson(result.data).tvSeriesList;
     } catch (e) {
       throw ServerException();
+    }
+  }
+
+  Future<SeasonDetailModel> getSeasonDetail(int tvId, int seasonNumber) async {
+    try {
+      print('Fetching season detail for TV ID: $tvId, Season: $seasonNumber');
+      final result = await client.get(
+        '/tv/$tvId/season/$seasonNumber',
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+          },
+        ),
+      );
+      
+      if (result.statusCode == 200) {
+        return SeasonDetailModel.fromJson(result.data);
+      } else {
+        print('API Error: ${result.statusCode} - ${result.statusMessage}');
+        print('Response data: ${result.data}');
+        throw ServerException('Failed to load season details. Status: ${result.statusCode}');
+      }
+    } on DioException catch (e) {
+      print('Dio Error: ${e.message}');
+      print('Error response: ${e.response?.data}');
+      throw ServerException('Network error: ${e.message}');
+    } catch (e) {
+      print('Unexpected error: $e');
+      throw ServerException('Unexpected error: $e');
     }
   }
 }

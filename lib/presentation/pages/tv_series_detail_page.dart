@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:ditonton/presentation/widgets/season_card.dart';
+import 'package:ditonton/presentation/pages/tv_series_seasons_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ditonton/common/constants.dart';
 import 'package:ditonton/common/state_enum.dart';
@@ -23,12 +25,15 @@ class _TvSeriesDetailPageState extends State<TvSeriesDetailPage> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      Provider.of<TvSeriesDetailNotifier>(context, listen: false)
-          .fetchTvSeriesDetail(widget.id);
-      Provider.of<TvSeriesDetailNotifier>(context, listen: false)
-          .getTvSeriesRecommendations(widget.id);
-      Provider.of<TvSeriesDetailNotifier>(context, listen: false)
-          .loadWatchlistStatus(widget.id);
+      final notifier = Provider.of<TvSeriesDetailNotifier>(context, listen: false);
+      notifier.fetchTvSeriesDetail(widget.id);
+      notifier.getTvSeriesRecommendations(widget.id);
+      notifier.loadWatchlistStatus(widget.id);
+      
+      // Fetch first season details by default
+      if (widget.id > 0) {
+        notifier.fetchSeasonDetail(widget.id, 1);
+      }
     });
   }
 
@@ -252,13 +257,73 @@ class DetailContent extends StatelessWidget {
                             if (tvSeries.numberOfSeasons > 0) ...[
                               Text(
                                 'Seasons: ${tvSeries.numberOfSeasons}',
-                                style: kBodyText,
+                                style: kBodyText.copyWith(fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 8),
+                              // Display season cards
+                              Consumer<TvSeriesDetailNotifier>(
+                                builder: (context, data, child) {
+                                  if (data.seasonDetailState == RequestState.Loading) {
+                                    return const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    );
+                                  } else if (data.seasonDetailState == RequestState.Error) {
+                                    return Center(
+                                      child: Text(
+                                        data.seasonDetailMessage,
+                                        style: kBodyText,
+                                      ),
+                                    );
+                                  } else if (data.seasonDetails.isNotEmpty) {
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Season ${data.seasonDetails.values.first.seasonNumber}',
+                                          style: kHeading6,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        SeasonCard(
+                                          season: data.seasonDetails.values.first,
+                                          onTap: () {
+                                            // Handle season tap
+                                          },
+                                        ),
+                                        // Add a button to view all seasons
+                                        if (tvSeries.numberOfSeasons > 1)
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pushNamed(
+                                                context,
+                                                TvSeriesSeasonsPage.ROUTE_NAME,
+                                                arguments: {
+                                                  'id': tvSeries.id,
+                                                  'title': tvSeries.name,
+                                                  'seasons': tvSeries.numberOfSeasons,
+                                                },
+                                              );
+                                            },
+                                            child: Text(
+                                              'View All ${tvSeries.numberOfSeasons} Seasons',
+                                              style: const TextStyle(
+                                                color: kMikadoYellow,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                },
+                              ),
+                              const SizedBox(height: 16),
                             ],
                             if (tvSeries.numberOfEpisodes > 0) ...[
                               Text(
-                                'Episodes: ${tvSeries.numberOfEpisodes}',
+                                'Total Episodes: ${tvSeries.numberOfEpisodes}',
                                 style: kBodyText,
                               ),
                               const SizedBox(height: 16),

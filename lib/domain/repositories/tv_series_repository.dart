@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../entities/tv_series.dart';
 import '../entities/tv_series_detail.dart';
+import '../entities/season_detail.dart';
 import '../../common/failure.dart';
 
 abstract class TvSeriesRepository {
@@ -14,4 +15,10 @@ abstract class TvSeriesRepository {
   Future<Either<Failure, String>> removeWatchlist(TvSeries tvSeries);
   Future<bool> isAddedToWatchlist(int id);
   Future<Either<Failure, List<TvSeries>>> getWatchlistTvSeries();
+  
+  /// Get detailed information about a specific season of a TV series.
+  /// 
+  /// [tvId] The ID of the TV series
+  /// [seasonNumber] The season number
+  Future<Either<Failure, SeasonDetail>> getSeasonDetail(int tvId, int seasonNumber);
 }

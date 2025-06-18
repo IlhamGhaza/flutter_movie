@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import '../../common/state_enum.dart';
 import '../../domain/entities/tv_series.dart';
 import '../../domain/entities/tv_series_detail.dart';
+import '../../domain/entities/season_detail.dart';
 import '../../domain/usecases/get_tv_series_detail.dart';
 import '../../domain/usecases/get_tv_series_recommendations.dart';
+import '../../domain/usecases/get_tv_series_season_detail.dart';
 import '../../domain/usecases/remove_watchlist_tv_series.dart';
 import '../../domain/usecases/save_watchlist_tv_series.dart';
 import '../../domain/usecases/get_watchlist_status_tv_series.dart';
@@ -14,6 +16,7 @@ class TvSeriesDetailNotifier extends ChangeNotifier {
   final SaveWatchlistTvSeries saveWatchlist;
   final RemoveWatchlistTvSeries removeWatchlist;
   final GetWatchListStatusTvSeries getWatchListStatus;
+  final GetTvSeriesSeasonDetail getTvSeriesSeasonDetail;
 
   static const watchlistAddSuccessMessage = 'Added to Watchlist';
   static const watchlistRemoveSuccessMessage = 'Removed from Watchlist';
@@ -24,11 +27,15 @@ class TvSeriesDetailNotifier extends ChangeNotifier {
     required this.saveWatchlist,
     required this.removeWatchlist,
     required this.getWatchListStatus,
+    required this.getTvSeriesSeasonDetail,
   }) : _getTvSeriesRecommendations = getTvSeriesRecommendations;
 
   RequestState _detailState = RequestState.Empty;
   RequestState _recommendationsState = RequestState.Empty;
+  RequestState _seasonDetailState = RequestState.Empty;
   String _message = '';
+  String _seasonDetailMessage = ''; 
+  final Map<int, SeasonDetail> _seasonDetails = {};
   String _recommendationsMessage = '';
   String _watchlistMessage = '';
   bool _isAddedToWatchlist = false;
@@ -43,6 +50,9 @@ class TvSeriesDetailNotifier extends ChangeNotifier {
 
   RequestState get detailState => _detailState;
   RequestState get recommendationsState => _recommendationsState;
+  RequestState get seasonDetailState => _seasonDetailState;
+  String get seasonDetailMessage => _seasonDetailMessage;
+  Map<int, SeasonDetail> get seasonDetails => _seasonDetails;
 
   TvSeriesDetail? get tvSeriesDetail => _tvSeriesDetail;
   List<TvSeries> get recommendations => _recommendations;
@@ -160,13 +170,46 @@ class TvSeriesDetailNotifier extends ChangeNotifier {
   }
 
   Future<void> loadWatchlistStatus(int id) async {
-    try {
-      final result = await getWatchListStatus.execute(id);
-      _isAddedToWatchlist = result;
-    } catch (e) {
-      _isAddedToWatchlist = false;
-    }
+    final result = await getWatchListStatus.execute(id);
+    _isAddedToWatchlist = result;
     notifyListeners();
+  }
+
+  Future<void> fetchSeasonDetail(int tvId, int seasonNumber) async {
+    try {
+      // Only update state if this is a new request
+      if (_seasonDetailState != RequestState.Loading) {
+        _seasonDetailState = RequestState.Loading;
+        _seasonDetailMessage = '';
+        notifyListeners();
+      }
+
+      final result = await getTvSeriesSeasonDetail.execute(tvId, seasonNumber);
+      
+      result.fold(
+        (failure) {
+          _seasonDetailState = RequestState.Error;
+          _seasonDetailMessage = failure.message.isNotEmpty 
+              ? failure.message 
+              : 'Failed to load season $seasonNumber details';
+          notifyListeners();
+        },
+        (seasonDetail) {
+          // Only update if the widget is still mounted
+          if (_seasonDetailState != RequestState.Loaded || 
+              _seasonDetails[seasonNumber] != seasonDetail) {
+            _seasonDetailState = RequestState.Loaded;
+            _seasonDetailMessage = '';
+            _seasonDetails[seasonNumber] = seasonDetail;
+            notifyListeners();
+          }
+        },
+      );
+    } catch (e) {
+      _seasonDetailState = RequestState.Error;
+      _seasonDetailMessage = 'An unexpected error occurred: $e';
+      notifyListeners();
+    }
   }
 
   Future<void> getTvSeriesRecommendations(int id) async {

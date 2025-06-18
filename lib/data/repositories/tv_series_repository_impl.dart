@@ -6,6 +6,7 @@ import 'package:ditonton/data/datasources/tv_series_remote_data_source.dart';
 import 'package:ditonton/domain/repositories/tv_series_repository.dart';
 import 'package:ditonton/domain/entities/tv_series.dart';
 import 'package:ditonton/domain/entities/tv_series_detail.dart';
+import 'package:ditonton/domain/entities/season_detail.dart';
 import 'package:ditonton/data/models/tv_series_table.dart';
 
 class TVSeriesRepositoryImpl implements TvSeriesRepository {
@@ -109,5 +110,19 @@ class TVSeriesRepositoryImpl implements TvSeriesRepository {
   Future<Either<Failure, List<TvSeries>>> getWatchlistTvSeries() async {
     final result = await localDataSource.getWatchlistTvSeries();
     return Right(result.map((data) => data.toEntity()).toList());
+  }
+
+  @override
+  Future<Either<Failure, SeasonDetail>> getSeasonDetail(int tvId, int seasonNumber) async {
+    try {
+      final result = await remoteDataSource.getSeasonDetail(tvId, seasonNumber);
+      // Convert the model directly to entity
+      return Right(result.toEntity());
+    } on ServerException catch (e) {
+      final errorMessage = e.message.isNotEmpty ? e.message : 'Failed to load season details';
+      return Left(ServerFailure(errorMessage));
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
   }
 }

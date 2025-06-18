@@ -10,6 +10,8 @@ import 'package:ditonton/presentation/pages/search_page.dart';
 import 'package:ditonton/presentation/pages/top_rated_movies_page.dart';
 import 'package:ditonton/presentation/pages/top_rated_tv_series_page.dart';
 import 'package:ditonton/presentation/pages/tv_series_detail_page.dart';
+import 'package:ditonton/presentation/pages/tv_series_seasons_page.dart';
+import 'package:ditonton/presentation/pages/season_detail_page.dart';
 import 'package:ditonton/presentation/pages/watchlist_movies_page.dart';
 import 'package:ditonton/presentation/pages/watchlist_tv_series_page.dart';
 import 'package:ditonton/presentation/pages/home_tv_series_page.dart';
@@ -125,6 +127,26 @@ class MyApp extends StatelessWidget {
               final id = settings.arguments as int;
               return MaterialPageRoute(
                 builder: (_) => TvSeriesDetailPage(id: id),
+                settings: settings,
+              );
+            case TvSeriesSeasonsPage.ROUTE_NAME:
+              final args = settings.arguments as Map<String, dynamic>;
+              return MaterialPageRoute(
+                builder: (_) => TvSeriesSeasonsPage(
+                  tvId: args['id'],
+                  tvTitle: args['title'],
+                  numberOfSeasons: args['seasons'],
+                ),
+                settings: settings,
+              );
+            case SeasonDetailPage.ROUTE_NAME:
+              final args = settings.arguments as Map<String, dynamic>;
+              return MaterialPageRoute(
+                builder: (_) => SeasonDetailPage(
+                  tvId: args['tvId'],
+                  tvTitle: args['tvTitle'],
+                  seasonNumber: args['seasonNumber'],
+                ),
                 settings: settings,
               );
             case AboutPage.ROUTE_NAME:

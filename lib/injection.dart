@@ -26,6 +26,7 @@ import 'package:ditonton/domain/usecases/save_watchlist.dart';
 import 'package:ditonton/domain/usecases/save_watchlist_tv_series.dart';
 import 'package:ditonton/domain/usecases/search_movies.dart';
 import 'package:ditonton/domain/usecases/search_tv_series.dart';
+import 'package:ditonton/domain/usecases/get_tv_series_season_detail.dart';
 import 'package:ditonton/presentation/provider/movie_detail_notifier.dart';
 import 'package:ditonton/presentation/provider/movie_list_notifier.dart';
 import 'package:ditonton/presentation/provider/movie_search_notifier.dart';
@@ -121,6 +122,7 @@ Future<void> init() async {
   locator.registerLazySingleton(() => GetWatchListStatusTvSeries(locator<TvSeriesRepository>()));
   locator.registerLazySingleton(() => SaveWatchlistTvSeries(locator<TvSeriesRepository>()));
   locator.registerLazySingleton(() => RemoveWatchlistTvSeries(locator<TvSeriesRepository>()));
+  locator.registerLazySingleton(() => GetTvSeriesSeasonDetail(locator<TvSeriesRepository>()));
 
   // Providers
   // Movie providers
@@ -174,6 +176,7 @@ Future<void> init() async {
       saveWatchlist: locator<SaveWatchlistTvSeries>(),
       removeWatchlist: locator<RemoveWatchlistTvSeries>(),
       getWatchListStatus: locator<GetWatchListStatusTvSeries>(),
+      getTvSeriesSeasonDetail: locator<GetTvSeriesSeasonDetail>(),
     ),
   );
   locator.registerFactory(
