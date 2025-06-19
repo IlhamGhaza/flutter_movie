@@ -9,20 +9,30 @@ import 'dart:typed_data' as _i19;
 
 import 'package:dartz/dartz.dart' as _i2;
 import 'package:ditonton/common/failure.dart' as _i7;
-import 'package:ditonton/data/datasources/db/database_helper.dart' as _i15;
-import 'package:ditonton/data/datasources/movie_local_data_source.dart' as _i12;
-import 'package:ditonton/data/datasources/movie_remote_data_source.dart'
+import 'package:ditonton/core/utils/database_helper.dart' as _i15;
+import 'package:ditonton/features/movies/data/datasources/movie_local_data_source.dart'
+    as _i12;
+import 'package:ditonton/features/movies/data/datasources/movie_remote_data_source.dart'
     as _i10;
-import 'package:ditonton/data/models/movie_detail_model.dart' as _i3;
-import 'package:ditonton/data/models/movie_model.dart' as _i11;
-import 'package:ditonton/data/models/movie_table.dart' as _i13;
-import 'package:ditonton/data/models/tv_series_table.dart' as _i17;
-import 'package:ditonton/domain/entities/movie.dart' as _i8;
-import 'package:ditonton/domain/entities/movie_detail.dart' as _i9;
-import 'package:ditonton/domain/entities/tv_series.dart' as _i21;
-import 'package:ditonton/domain/entities/tv_series_detail.dart' as _i22;
-import 'package:ditonton/domain/repositories/movie_repository.dart' as _i5;
-import 'package:ditonton/domain/repositories/tv_series_repository.dart' as _i20;
+import 'package:ditonton/features/movies/data/models/movie_detail_model.dart'
+    as _i3;
+import 'package:ditonton/features/movies/data/models/movie_model.dart' as _i11;
+import 'package:ditonton/features/movies/data/models/movie_table.dart' as _i13;
+import 'package:ditonton/features/movies/domain/entities/movie.dart' as _i8;
+import 'package:ditonton/features/movies/domain/entities/movie_detail.dart'
+    as _i9;
+import 'package:ditonton/features/movies/domain/repositories/movie_repository.dart'
+    as _i5;
+import 'package:ditonton/features/tv_series/data/models/tv_series_table.dart'
+    as _i17;
+import 'package:ditonton/features/tv_series/domain/entities/season_detail.dart'
+    as _i23;
+import 'package:ditonton/features/tv_series/domain/entities/tv_series.dart'
+    as _i21;
+import 'package:ditonton/features/tv_series/domain/entities/tv_series_detail.dart'
+    as _i22;
+import 'package:ditonton/features/tv_series/domain/repositories/tv_series_repository.dart'
+    as _i20;
 import 'package:http/http.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i14;
@@ -924,4 +934,31 @@ class MockTvSeriesRepository extends _i1.Mock
               ),
             )),
           ) as _i6.Future<_i2.Either<_i7.Failure, List<_i21.TvSeries>>>);
+
+  @override
+  _i6.Future<_i2.Either<_i7.Failure, _i23.SeasonDetail>> getSeasonDetail(
+    int? tvId,
+    int? seasonNumber,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSeasonDetail,
+          [
+            tvId,
+            seasonNumber,
+          ],
+        ),
+        returnValue:
+            _i6.Future<_i2.Either<_i7.Failure, _i23.SeasonDetail>>.value(
+                _FakeEither_0<_i7.Failure, _i23.SeasonDetail>(
+          this,
+          Invocation.method(
+            #getSeasonDetail,
+            [
+              tvId,
+              seasonNumber,
+            ],
+          ),
+        )),
+      ) as _i6.Future<_i2.Either<_i7.Failure, _i23.SeasonDetail>>);
 }
