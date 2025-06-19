@@ -2,15 +2,16 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:flutter/foundation.dart';
 
 import '../ssl/certificate_pinner.dart';
-
 
 class ApiClient {
   static const String _baseUrl = 'https://api.themoviedb.org/3';
   static const String _apiKey = '2174d146bb9c0eab47529b2e77d6b526';
   
   late final Dio _dio;
+  bool _isPinningVerified = false;
   
   ApiClient() {
     _dio = Dio(
@@ -32,11 +33,41 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          if (!_isPinningVerified && !kIsWeb) {
+            try {
+              await CertificatePinner.checkPinning();
+              _isPinningVerified = true;
+            } catch (e) {
+              debugPrint('⚠️ Certificate pinning verification failed: $e');
+              return handler.reject(
+                DioException(
+                  requestOptions: options,
+                  error: 'Security error: Certificate verification failed',
+                  type: DioExceptionType.unknown,
+                ),
+              );
+            }
+          }
+          
           // Add any request headers or tokens here
+          options.headers['Accept'] = 'application/json';
+          options.headers['Content-Type'] = 'application/json';
+          
+          debugPrint('🌐 ${options.method} ${options.uri}');
           return handler.next(options);
         },
+        onResponse: (response, handler) {
+          debugPrint('✅ ${response.statusCode} ${response.requestOptions.method} ${response.requestOptions.path}');
+          return handler.next(response);
+        },
         onError: (error, handler) async {
-          // Handle errors globally
+          debugPrint('❌ ${error.response?.statusCode ?? 'No Status'} ${error.requestOptions.method} ${error.requestOptions.path}');
+          debugPrint('Error: ${error.message}');
+          
+          if (error.response != null) {
+            debugPrint('Response data: ${error.response?.data}');
+          }
+          
           return handler.next(error);
         },
       ),
@@ -44,17 +75,33 @@ class ApiClient {
   }
   
   void _setupCertificatePinning() async {
-    // Configure certificate pinning
-    final securityContext = await CertificatePinner.securityContext;
+    if (kIsWeb) {
+      debugPrint('⚠️ Certificate pinning is not supported on web platform');
+      return;
+    }
     
-    (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
-      final httpClient = HttpClient(context: securityContext);
-      httpClient.badCertificateCallback = (cert, host, port) {
-        // Implement additional certificate validation if needed
-        return false; // Reject invalid certificates
+    try {
+      // Configure certificate pinning
+      final securityContext = await CertificatePinner.securityContext;
+      
+      (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
+        final httpClient = HttpClient(context: securityContext);
+        httpClient.badCertificateCallback = (cert, host, port) {
+          debugPrint('⚠️ Bad certificate detected for $host:$port');
+          debugPrint('Certificate subject: ${cert.subject}');
+          debugPrint('Certificate issuer: ${cert.issuer}');
+          return false; // Reject invalid certificates
+        };
+        return httpClient;
       };
-      return httpClient;
-    };
+      
+      // Perform initial pinning check
+      await CertificatePinner.checkPinning();
+      _isPinningVerified = true;
+    } catch (e) {
+      debugPrint('❌ Failed to set up certificate pinning: $e');
+      rethrow;
+    }
   }
   
   // Example GET request

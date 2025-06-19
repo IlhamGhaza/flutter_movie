@@ -28,8 +28,8 @@ android {
         applicationId = "com.dicoding.ditonton"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdkVersion 22
-        multiDexEnabled true
+        minSdk = 22
+        multiDexEnabled = true
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

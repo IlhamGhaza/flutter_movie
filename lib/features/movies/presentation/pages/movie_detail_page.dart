@@ -174,9 +174,9 @@ class DetailContent extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.7),
+                    Colors.black.withValues(alpha: 0.7),
                     Colors.transparent,
-                    Colors.black.withOpacity(0.7),
+                    Colors.black.withValues(alpha: 0.7),
                   ],
                 ),
               ),
@@ -197,7 +197,7 @@ class DetailContent extends StatelessWidget {
                       const BorderRadius.vertical(top: Radius.circular(24)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, -5),
                     ),
@@ -236,7 +236,7 @@ class DetailContent extends StatelessWidget {
                                   : Theme.of(context).primaryColor,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
+                                  color: Colors.black.withValues(alpha: 0.2),
                                   blurRadius: 4,
                                   offset: Offset(0, 2),
                                 ),
@@ -262,23 +262,29 @@ class DetailContent extends StatelessWidget {
                                         ),
                                         content: Text(
                                           'Are you sure you want to remove "${movie.title}" from your watchlist?',
-                                          style: TextStyle(color: Colors.white70),
+                                          style:
+                                              TextStyle(color: Colors.white70),
                                         ),
                                         actions: [
                                           TextButton(
-                                            onPressed: () => Navigator.pop(context, false),
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
                                             child: Text(
                                               'CANCEL',
-                                              style: TextStyle(color: Colors.grey[400]),
+                                              style: TextStyle(
+                                                  color: Colors.grey[400]),
                                             ),
                                           ),
                                           TextButton(
-                                            onPressed: () => Navigator.pop(context, true),
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
                                             style: TextButton.styleFrom(
                                               backgroundColor: Colors.red[900],
-                                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 16, vertical: 8),
                                               shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(20),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
                                               ),
                                             ),
                                             child: Text(
