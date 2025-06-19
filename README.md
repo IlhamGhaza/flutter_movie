@@ -111,6 +111,7 @@ Below is a screenshot of a successful build in the Codemagic CI/CD pipeline:
 Here's a screenshot of the GitHub repository showing the project structure and recent commits:
 
 ![GitHub Repository Screenshot](assets/image/github-repo.png)
+![GitHub Repository2 Screenshot](assets/image/github-repo2.png)
 
 ## License
 
