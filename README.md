@@ -1,6 +1,6 @@
 # Flutter Movie App
 
-[![Codemagic build status](https://api.codemagic.io/apps/6672e1c6f8b3c8b3e4e3e1d6/6672e1c6f8b3c8b3e4e3e1d5/status_badge.svg)](https://codemagic.io/apps/6672e1c6f8b3c8b3e4e3e1d6/6672e1c6f8b3c8b3e4e3e1d5/latest_build)
+[![Codemagic build status](https://api.codemagic.io/apps/6853fc0de989936f7590836c/6853fc0de989936f7590836b/status_badge.svg)](https://codemagic.io/app/6853fc0de989936f7590836c/6853fc0de989936f7590836b/latest_build)
 
 A Flutter application for browsing movies and TV shows with secure API communication.
 
@@ -98,7 +98,7 @@ The CI/CD pipeline is configured using the `codemagic.yaml` file in the root of 
 
 ### Viewing Build History
 
-You can view the complete build history and logs by visiting the [Codemagic dashboard](https://codemagic.io/apps/6672e1c6f8b3c8b3e4e3e1d6/6672e1c6f8b3c8b3e4e3e1d5/builds).
+You can view the complete build history and logs by visiting the [Codemagic dashboard](https://codemagic.io/apps/6672e1c6f8b3c8b3e4e3e1d6/6854290c207ff53600801f3c/builds).
 
 ### Build Screenshot
 
