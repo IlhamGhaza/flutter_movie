@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:ditonton/features/movies/domain/entities/movie.dart';
-import 'package:ditonton/features/tv_series/data/models/genre_model.dart';
+import 'package:ditonton/features/movies/data/models/genre_model.dart';
 import 'package:ditonton/features/movies/data/models/movie_detail_model.dart';
 import 'package:ditonton/features/movies/data/models/movie_model.dart';
 import 'package:ditonton/features/movies/data/repositories/movie_repository_impl.dart';

@@ -44,6 +44,7 @@ import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
+import 'core/ssl/certificate_pinner.dart';
 import 'features/tv_series/domain/usecases/get_watchlist_status_tv_series.dart';
 
 final locator = GetIt.instance;
@@ -52,19 +53,23 @@ Future<void> init() async {
   // External dependencies
   locator.registerLazySingleton(() => http.Client());
   
-  // Configure Dio client for TMDb API
+  // Configure Dio client for TMDb API with certificate pinning
   locator.registerLazySingleton<Dio>(() {
-    final options = BaseOptions(
+    final dio = CertificatePinner.createDioClient();
+    
+    // Set base options
+    dio.options = BaseOptions(
       baseUrl: 'https://api.themoviedb.org/3',
       queryParameters: {
         'api_key': '2174d146bb9c0eab47529b2e77d6b526',
-        'language': 'en-US'
+        'language': 'en-US',
       },
       headers: {
-        'Content-Type': 'application/json;charset=utf-8'
+        'Content-Type': 'application/json;charset=utf-8',
       },
     );
-    return Dio(options);
+    
+    return dio;
   });
   
   // Initialize and register database helper first

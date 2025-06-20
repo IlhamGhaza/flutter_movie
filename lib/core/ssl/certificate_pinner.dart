@@ -1,81 +1,65 @@
-import 'dart:convert';
-import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:http_certificate_pinning/http_certificate_pinning.dart';
 
 class CertificatePinner {
   // Public key hashes for api.themoviedb.org
-  // These should be updated if the server's certificate changes
+  // These are SHA-256 fingerprints of the public keys (not the certificate)
+  // You can get these using: openssl s_client -connect api.themoviedb.org:443 -showcerts < /dev/null | openssl x509 -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | openssl enc -base64
   static const List<String> pinnedHashes = [
-    // Primary certificate
-    'BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB:BB',
-    // Backup/Intermediate certificate (if available)
-    'CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC:CC',
+    // Current public key hash for api.themoviedb.org
+    'sha256/uyPYgclc5Jt69vKgkhqr+43PsiQDvQ3FvkQjXG0NWSI=',
+    // Backup/Intermediate certificate hash
+    'sha256/++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=',
   ];
 
   static const String apiDomain = 'api.themoviedb.org';
-  static const Duration timeout = Duration(seconds: 10);
 
-  static Future<SecurityContext> get securityContext async {
-    final securityContext = SecurityContext();
+  /// Creates a Dio client with certificate pinning enabled
+  static Dio createDioClient() {
+    final dio = Dio();
     
-    // Enable strict certificate validation
-    securityContext.allowLegacyUnsafeRenegotiation = false;
-    securityContext.setTrustedCertificatesBytes(
-      asn1encode(utf8.encode(apiDomain)),
-    );
-    
-    return securityContext;
+    // Add certificate pinning interceptor
+    dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        try {
+          // Verify certificate pinning before making the request
+          await verifyPinning();
+          return handler.next(options);
+        } catch (e) {
+          return handler.reject(DioException(
+            requestOptions: options,
+            error: 'Certificate pinning verification failed',
+            type: DioExceptionType.unknown,
+          ));
+        }
+      },
+    ));
+
+    return dio;
   }
 
   /// Verifies the server's certificate against the pinned public key hashes
   static Future<bool> verifyPinning() async {
     try {
       final check = await HttpCertificatePinning.check(
-        serverURL: apiDomain,
+        serverURL: 'https://$apiDomain',
         headerHttp: const <String, String>{},
         sha: SHA.SHA256,
         allowedSHAFingerprints: pinnedHashes,
-        timeout: timeout.inSeconds,
+        timeout: 30, // 30 seconds timeout
       );
       
       final isSecure = check.contains('CONNECTION_SECURE');
       if (isSecure) {
-        print(' Certificate pinning successful for $apiDomain');
+        print('✅ Certificate pinning successful for $apiDomain');
       } else {
-        print(' Certificate pinning failed: $check');
+        print('❌ Certificate pinning failed: $check');
       }
       return isSecure;
     } catch (e) {
-      print(' Certificate pinning error: $e');
+      print('❌ Certificate pinning error: $e');
       rethrow;
     }
-  }
-
-  /// Checks certificate pinning and throws an exception if it fails
-  static Future<void> checkPinning() async {
-    final isSecure = await verifyPinning();
-    if (!isSecure) {
-      throw CertificatePinningException('Certificate pinning verification failed');
-    }
-  }
-  
-  // Helper method to encode data in ASN.1 format
-  static List<int> asn1encode(List<int> data) {
-    final result = <int>[];
-    if (data.length <= 127) {
-      result.add(data.length);
-    } else {
-      final lenBytes = <int>[];
-      var len = data.length;
-      while (len > 0) {
-        lenBytes.add(len & 0xff);
-        len >>= 8;
-      }
-      result.add(0x80 | lenBytes.length);
-      result.addAll(lenBytes.reversed);
-    }
-    result.addAll(data);
-    return result;
   }
 }
 

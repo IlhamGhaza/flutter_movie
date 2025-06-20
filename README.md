@@ -98,6 +98,43 @@ The CI/CD pipeline is configured using the `codemagic.yaml` file in the root of 
 
 ### Viewing Build History
 
+## Firebase Integration
+
+This app uses Firebase Analytics and Crashlytics to track user behavior and monitor app stability.
+
+### Firebase Analytics
+
+Firebase Analytics helps you understand how users interact with your app. Below is a screenshot of the Firebase Analytics dashboard showing user engagement metrics:
+
+![Firebase Analytics Dashboard](assets/image/fAnalytics.png)
+
+### Firebase Crashlytics
+
+Firebase Crashlytics helps you track and fix app crashes in real-time. Below is a screenshot of the Crashlytics dashboard showing crash reports:
+
+![Firebase Crashlytics Dashboard](assets/image/fCrash.png)
+
+### Setting Up Firebase
+
+1. Add Firebase to your Flutter project by following the [official FlutterFire documentation](https://firebase.flutter.dev/docs/overview/)
+2. Enable Analytics and Crashlytics in the Firebase Console
+3. Add the required configuration files to your project
+4. The app will automatically start sending analytics and crash reports
+
+### Viewing Analytics and Crash Reports
+
+1. Go to the [Firebase Console](https://console.firebase.google.com/)
+2. Select your project
+3. Navigate to the Analytics or Crashlytics section in the left sidebar
+4. View detailed reports and insights about your app's performance and stability
+
+### Note on Privacy
+
+- All data collection complies with privacy regulations
+- Users can opt out of analytics collection in the app settings
+- No personally identifiable information is collected without user consent
+
+
 You can view the complete build history and logs by visiting the [Codemagic dashboard](https://codemagic.io/apps/6672e1c6f8b3c8b3e4e3e1d6/6854290c207ff53600801f3c/builds).
 
 ### Build Screenshot

@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/movie_detail.dart';
-import '../../../tv_series/data/models/genre_model.dart';
+import 'genre_model.dart';
 
 class MovieDetailResponse extends Equatable {
   const MovieDetailResponse({
