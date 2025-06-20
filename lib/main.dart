@@ -32,6 +32,7 @@ import 'package:ditonton/features/tv_series/presentation/pages/tv_series_seasons
 import 'package:ditonton/features/tv_series/presentation/pages/watchlist_tv_series_page.dart';
 import 'package:ditonton/injection.dart' as di;
 
+import 'core/ssl/certificate_pinner.dart';
 import 'features/movies/presentation/bloc/watchlist_movie/watchlist_movie_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -39,33 +40,35 @@ import 'firebase_options.dart';
 void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
-  
+  await CertificatePinner.initialize();
+
   try {
     // Initialize dependency injection
     await di.init();
-    
+
     // Initialize Firebase
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    
+
     // Set up Crashlytics
     FlutterError.onError = (errorDetails) {
       // Log Flutter errors to Crashlytics
       FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
       // You can also log the error to console for debugging
-      debugPrint('Flutter error caught by Crashlytics: ${errorDetails.exception}');
+      debugPrint(
+          'Flutter error caught by Crashlytics: ${errorDetails.exception}');
     };
-    
+
     // Optional: Set Crashlytics to handle uncaught errors
     PlatformDispatcher.instance.onError = (error, stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
-    
+
     // Optional: Set user identifier (if you have user authentication)
     // FirebaseCrashlytics.instance.setUserIdentifier('user_id_here');
-    
+
     runApp(MyApp());
   } catch (error, stackTrace) {
     // Catch any initialization errors
@@ -96,7 +99,9 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => di.locator<TVSeriesSearchBloc>()),
         BlocProvider(create: (_) => di.locator<PopularTvSeriesBloc>()),
         BlocProvider(create: (_) => di.locator<TopRatedTvSeriesBloc>()),
-        BlocProvider(create: (_) => di.locator<WatchlistTvSeriesBloc>(),),
+        BlocProvider(
+          create: (_) => di.locator<WatchlistTvSeriesBloc>(),
+        ),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',

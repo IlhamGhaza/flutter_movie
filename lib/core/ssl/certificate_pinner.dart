@@ -1,64 +1,106 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 class CertificatePinner {
+  static const String _certificatePath = 'assets/certificates/certificates.pem';
+  static SecurityContext? _securityContext;
+
   // List of allowed domains for certificate pinning
   static const List<String> allowedDomains = [
     'api.themoviedb.org',
-    'developer.themoviedb.org',
+    // 'developer.themoviedb.org',
   ];
 
-  // List of allowed public key hashes (SHA-256)
-  // These should be the base64-encoded SHA-256 hashes of the public keys
-  static const List<String> allowedPublicKeyHashes = [
-    // Add your public key hashes here
-    // Example: 'sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
-  ];
+  /// Initialize the security context with the pinned certificate
+  static Future<void> initialize() async {
+    if (_securityContext != null) return;
+    
+    try {
+      // Load the certificate from assets
+      final sslCert = await rootBundle.load(_certificatePath);
+      
+      // Create a security context with the certificate
+      _securityContext = SecurityContext(withTrustedRoots: false);
+      _securityContext!.setTrustedCertificatesBytes(sslCert.buffer.asInt8List());
+      
+      debugPrint('✅ SSL Certificate pinning initialized successfully');
+    } catch (e) {
+      debugPrint('❌ Failed to initialize certificate pinning: $e');
+      rethrow;
+    }
+  }
 
-  // Check if the given host is in the allowed domains list
+  /// Creates a secure HTTP client with certificate pinning
+  static HttpClient createSecureHttpClient() {
+    if (_securityContext == null) {
+      throw CertificatePinningException('CertificatePinner not initialized. Call initialize() first.');
+    }
+    
+    return HttpClient(context: _securityContext!)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) {
+        if (!_isAllowedDomain(host)) {
+          debugPrint('❌ Domain not allowed: $host');
+          return false;
+        }
+        
+        // Certificate validation is handled by the SecurityContext
+        // This callback is only called if the certificate verification fails
+        debugPrint('❌ Certificate verification failed for $host');
+        return false;
+      };
+  }
+  
+  /// Creates a Dio client with certificate pinning enabled
+  static Dio createDioClient() {
+    if (_securityContext == null) {
+      throw CertificatePinningException('CertificatePinner not initialized. Call initialize() first.');
+    }
+    
+    final dio = Dio();
+    
+    // Create a custom HttpClient with the security context
+    final httpClient = HttpClient(context: _securityContext!);
+    httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) {
+      if (!_isAllowedDomain(host)) {
+        debugPrint('❌ Domain not allowed: $host');
+        return false;
+      }
+      debugPrint('❌ Certificate verification failed for $host');
+      return false;
+    };
+    
+    // Set the custom HttpClient to the Dio instance
+    dio.httpClientAdapter = _createAdapter(httpClient);
+    
+    return dio;
+  }
+  
+  // Helper method to create a custom HttpClientAdapter
+  static dynamic _createAdapter(HttpClient httpClient) {
+    return IOHttpClientAdapter(
+      createHttpClient: () => httpClient,
+    );
+  }
+
+  /// Verifies if the given host is in the allowed domains list
   static bool _isAllowedDomain(String host) {
     return allowedDomains.any((domain) => 
       host == domain || host.endsWith('.$domain')
     );
   }
 
-  /// Creates a Dio client with certificate pinning enabled
-  static Dio createDioClient() {
-    final dio = Dio();
-    
-    // Configure the HTTP client for certificate pinning
-    (dio.httpClientAdapter as dynamic).onHttpClientCreate = (HttpClient client) {
-      client.badCertificateCallback = (X509Certificate cert, String host, int port) {
-        // First check if the domain is allowed
-        if (!_isAllowedDomain(host)) {
-          debugPrint('❌ Domain not allowed: $host');
-          return false;
-        }
-        
-        // If we have public key hashes, verify against them
-        if (allowedPublicKeyHashes.isNotEmpty) {
-          // In a real implementation, you would verify the certificate's
-          // public key hash against the allowed hashes
-          // For now, we'll just log and allow the connection
-          debugPrint('✅ Allowed connection to $host (certificate pinning not fully implemented)');
-        }
-        
-        return true; // Allow the connection
-      };
-      return client;
-    };
-
-    return dio;
-  }
-
   /// Verifies the server's certificate against the pinned certificate
   static Future<bool> verifyPinning() async {
-    // This method is kept for backward compatibility
-    // The actual pinning is now handled by the HttpClient's badCertificateCallback
+    if (_securityContext == null) {
+      await initialize();
+    }
+    
     debugPrint('🔒 Certificate pinning is enabled for domains: $allowedDomains');
-    return true;
+    return _securityContext != null;
   }
 }
 
