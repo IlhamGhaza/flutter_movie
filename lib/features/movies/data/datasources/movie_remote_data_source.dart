@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:ditonton/features/movies/data/models/movie_detail_model.dart';
 import 'package:ditonton/features/movies/data/models/movie_model.dart';
 import 'package:ditonton/features/movies/data/models/movie_response.dart';
 import 'package:ditonton/common/exception.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 abstract class MovieRemoteDataSource {
   Future<List<MovieModel>> getNowPlayingMovies();
@@ -16,82 +14,82 @@ abstract class MovieRemoteDataSource {
 }
 
 class MovieRemoteDataSourceImpl implements MovieRemoteDataSource {
-  static const API_KEY = 'api_key=2174d146bb9c0eab47529b2e77d6b526';
-  static const BASE_URL = 'https://api.themoviedb.org/3';
-
-  final http.Client client;
+  final Dio client;
 
   MovieRemoteDataSourceImpl({required this.client});
 
   @override
   Future<List<MovieModel>> getNowPlayingMovies() async {
-    final response =
-        await client.get(Uri.parse('$BASE_URL/movie/now_playing?$API_KEY'));
-
-    if (response.statusCode == 200) {
-      return MovieResponse.fromJson(json.decode(response.body)).movieList;
-    } else {
-      throw ServerException();
+    try {
+      final response = await client.get('/movie/now_playing');
+      return MovieResponse.fromJson(response.data).movieList;
+    } on DioException catch (e) {
+      throw ServerException(e.response?.data['status_message'] ?? e.message ?? 'Failed to get now playing movies');
+    } catch (e) {
+      throw ServerException('Failed to get now playing movies');
     }
   }
 
   @override
   Future<MovieDetailResponse> getMovieDetail(int id) async {
-    final response =
-        await client.get(Uri.parse('$BASE_URL/movie/$id?$API_KEY'));
-
-    if (response.statusCode == 200) {
-      return MovieDetailResponse.fromJson(json.decode(response.body));
-    } else {
-      throw ServerException();
+    try {
+      final response = await client.get('/movie/$id');
+      return MovieDetailResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw ServerException(e.response?.data['status_message'] ?? e.message ?? 'Failed to get movie detail');
+    } catch (e) {
+      throw ServerException('Failed to get movie detail');
     }
   }
 
   @override
   Future<List<MovieModel>> getMovieRecommendations(int id) async {
-    final response = await client
-        .get(Uri.parse('$BASE_URL/movie/$id/recommendations?$API_KEY'));
-
-    if (response.statusCode == 200) {
-      return MovieResponse.fromJson(json.decode(response.body)).movieList;
-    } else {
-      throw ServerException();
+    try {
+      final response = await client.get('/movie/$id/recommendations');
+      return MovieResponse.fromJson(response.data).movieList;
+    } on DioException catch (e) {
+      throw ServerException(e.response?.data['status_message'] ?? e.message ?? 'Failed to get movie recommendations');
+    } catch (e) {
+      throw ServerException('Failed to get movie recommendations');
     }
   }
 
   @override
   Future<List<MovieModel>> getPopularMovies() async {
-    final response =
-        await client.get(Uri.parse('$BASE_URL/movie/popular?$API_KEY'));
-
-    if (response.statusCode == 200) {
-      return MovieResponse.fromJson(json.decode(response.body)).movieList;
-    } else {
-      throw ServerException();
+    try {
+      final response = await client.get('/movie/popular');
+      return MovieResponse.fromJson(response.data).movieList;
+    } on DioException catch (e) {
+      throw ServerException(e.response?.data['status_message'] ?? e.message ?? 'Failed to get popular movies');
+    } catch (e) {
+      throw ServerException('Failed to get popular movies');
     }
   }
 
   @override
   Future<List<MovieModel>> getTopRatedMovies() async {
-    final response =
-        await client.get(Uri.parse('$BASE_URL/movie/top_rated?$API_KEY'));
-
-    if (response.statusCode == 200) {
-      return MovieResponse.fromJson(json.decode(response.body)).movieList;
-    } else {
-      throw ServerException();
+    try {
+      final response = await client.get('/movie/top_rated');
+      return MovieResponse.fromJson(response.data).movieList;
+    } on DioException catch (e) {
+      throw ServerException(e.response?.data['status_message'] ?? e.message ?? 'Failed to get top rated movies');
+    } catch (e) {
+      throw ServerException('Failed to get top rated movies');
     }
   }
 
   @override
   Future<List<MovieModel>> searchMovies(String query) async {
-    final response = await client
-        .get(Uri.parse('$BASE_URL/search/movie?$API_KEY&query=$query'));
-
-    if (response.statusCode == 200) {
-      return MovieResponse.fromJson(json.decode(response.body)).movieList;
-    } else {
-      throw ServerException();
+    try {
+      final response = await client.get(
+        '/search/movie',
+        queryParameters: {'query': query},
+      );
+      return MovieResponse.fromJson(response.data).movieList;
+    } on DioException catch (e) {
+      throw ServerException(e.response?.data['status_message'] ?? e.message ?? 'Failed to search movies');
+    } catch (e) {
+      throw ServerException('Failed to search movies');
     }
   }
 }

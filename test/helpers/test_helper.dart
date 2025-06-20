@@ -5,6 +5,7 @@ import 'package:ditonton/features/movies/domain/repositories/movie_repository.da
 import 'package:ditonton/features/tv_series/domain/repositories/tv_series_repository.dart';
 import 'package:mockito/annotations.dart';
 import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 @GenerateMocks([
   MovieRepository,
@@ -14,5 +15,6 @@ import 'package:http/http.dart' as http;
 ], customMocks: [
   MockSpec<http.Client>(as: #MockHttpClient),
   MockSpec<TvSeriesRepository>(as: #MockTvSeriesRepository),
+  MockSpec<Dio>(as: #MockDio),
 ])
 void main() {}
